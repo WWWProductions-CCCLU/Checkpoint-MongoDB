@@ -1,0 +1,114 @@
+Let's break down the tasks step by step and provide the necessary code using Node.js, Express, MongoDB, and Mongoose to achieve each operation.
+
+### Step 1: Set Up Your Environment
+Ensure you have Node.js, MongoDB, and Mongoose installed. If not, install them using:
+```sh
+npm install express mongoose
+```
+
+### Step 2: Create the Necessary Files
+Create a file named `app.js` for your server setup.
+
+### Step 3: Connect to MongoDB and Define the Schema
+In your `app.js`, set up the connection to MongoDB and define the schema for the contacts.
+
+```js
+const express = require('express');
+const mongoose = require('mongoose');
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+app.use(express.json());
+
+mongoose.connect('mongodb://localhost:27017/contact', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => console.log('MongoDB connected'))
+  .catch(err => console.log(err));
+
+const contactSchema = new mongoose.Schema({
+  lastName: String,
+  firstName: String,
+  email: String,
+  age: Number
+});
+
+const Contact = mongoose.model('Contact', contactSchema);
+
+// Insert initial contacts
+const insertInitialContacts = async () => {
+  await Contact.insertMany([
+    { lastName: 'Ben', firstName: 'Moris', email: 'ben@gmail.com', age: 26 },
+    { lastName: 'Kefi', firstName: 'Seif', email: 'kefi@gmail.com', age: 15 },
+    { lastName: 'Emilie', firstName: 'brouge', email: 'emilie.b@gmail.com', age: 40 },
+    { lastName: 'Alex', firstName: 'brown', age: 4 },
+    { lastName: 'Denzel', firstName: 'Washington', age: 3 }
+  ]);
+  console.log('Initial contacts inserted');
+};
+
+// Display all of the contacts list
+app.get('/contacts', async (req, res) => {
+  const contacts = await Contact.find();
+  res.send(contacts);
+});
+
+// Display all the information about only one person using their ID
+app.get('/contacts/:id', async (req, res) => {
+  const contact = await Contact.findById(req.params.id);
+  res.send(contact);
+});
+
+// Display all the contacts with an age >18
+app.get('/contacts/age/greater-than-18', async (req, res) => {
+  const contacts = await Contact.find({ age: { $gt: 18 } });
+  res.send(contacts);
+});
+
+// Display all the contacts with an age>18 and name containing "ah"
+app.get('/contacts/age/greater-than-18/name-contains-ah', async (req, res) => {
+  const contacts = await Contact.find({ age: { $gt: 18 }, firstName: /ah/i });
+  res.send(contacts);
+});
+
+// Change the contact's first name from "Kefi Seif" to "Kefi Anis"
+app.put('/contacts/update-name', async (req, res) => {
+  await Contact.findOneAndUpdate(
+    { lastName: 'Kefi', firstName: 'Seif' },
+    { firstName: 'Anis' }
+  );
+  res.send('Contact name updated');
+});
+
+// Delete the contacts that are aged under 5
+app.delete('/contacts/delete-under-5', async (req, res) => {
+  await Contact.deleteMany({ age: { $lt: 5 } });
+  res.send('Contacts aged under 5 deleted');
+});
+
+app.listen(port, async () => {
+  console.log(`Server is running on http://localhost:${port}`);
+  await insertInitialContacts(); // Insert initial contacts once the server starts
+});
+```
+
+### Step 4: Run Your Application
+To run your Express application, use the following command:
+
+```sh
+node app.js
+```
+
+### Endpoints Summary
+- **Display all contacts**: `GET /contacts`
+- **Display a contact by ID**: `GET /contacts/:id`
+- **Display contacts with age > 18**: `GET /contacts/age/greater-than-18`
+- **Display contacts with age > 18 and name containing "ah"**: `GET /contacts/age/greater-than-18/name-contains-ah`
+- **Update contact's first name**: `PUT /contacts/update-name`
+- **Delete contacts aged under 5**: `DELETE /contacts/delete-under-5`
+
+### Capturing Screenshots
+After running the above commands and testing the endpoints, don't forget to take screenshots of the results as requested.
+
+Feel free to reach out if you need further assistance with any part of this assignment! 🚀
